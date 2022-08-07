@@ -33,3 +33,14 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+## DB
+*.sqlite
+
+## Serverless
+rds.yaml
+serverless.yaml
+.serverless/
+
+#ENV
+.env
