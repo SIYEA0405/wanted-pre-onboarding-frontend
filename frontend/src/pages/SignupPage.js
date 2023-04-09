@@ -7,6 +7,13 @@ const SignupPage = () => {
   const [isDisabled, setIsDisabled] = useState(false);
 
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      navigate('/todo');
+    }
+  }, []);
 
   useEffect(() => {
     email.includes('@') && password.length >= 8
