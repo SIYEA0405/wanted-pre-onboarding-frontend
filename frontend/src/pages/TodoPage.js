@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Layout from '../components/Layout';
+import {
+  FormControl,
+  FormLabel,
+  Button,
+  Input,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
 
 const TodoPage = () => {
   const [token, setToken] = useState(
@@ -17,7 +26,7 @@ const TodoPage = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setTodos([...data.map(td => ({...td, editMode: false}))]);
+        setTodos([...data.map((td) => ({ ...td, editMode: false }))]);
       })
       .catch((err) => {
         console.error(err);
@@ -48,7 +57,7 @@ const TodoPage = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setTodos([...todos, {...data, editMode: false}]);
+        setTodos([...todos, { ...data, editMode: false }]);
         setAddTodo('');
       })
       .catch((err) => {
@@ -68,13 +77,13 @@ const TodoPage = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log(`변경후: ${id} ${data.todo} /${data.isCompleted}`);
-        const updatedTodos = todos.map(td => {
+        const updatedTodos = todos.map((td) => {
           if (td.id === id) {
             return {
               ...td,
               isCompleted: data.isCompleted,
-              todo: data.todo
-            }
+              todo: data.todo,
+            };
           }
           return td;
         });
@@ -86,12 +95,12 @@ const TodoPage = () => {
   };
 
   const handleModify = (id) => {
-    const updatedTodos = todos.map(td => {
+    const updatedTodos = todos.map((td) => {
       if (td.id === id) {
         return {
           ...td,
-          editMode: !td.editMode
-        }
+          editMode: !td.editMode,
+        };
       }
       return td;
     });
@@ -99,25 +108,25 @@ const TodoPage = () => {
   };
 
   const handleCancel = (id) => {
-    const updatedTodos = todos.map(td => {
+    const updatedTodos = todos.map((td) => {
       if (td.id === id) {
         return {
           ...td,
-          editMode: false
-        }
+          editMode: false,
+        };
       }
       return td;
     });
     setTodos(updatedTodos);
-  }
+  };
 
   const handleEditInput = (e, id) => {
-    const updatedTodos = todos.map(td => {
+    const updatedTodos = todos.map((td) => {
       if (td.id === id) {
         return {
           ...td,
-          todo: e.target.value
-        }
+          todo: e.target.value,
+        };
       }
       return td;
     });
@@ -136,12 +145,12 @@ const TodoPage = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log(`변경후: ${id} ${data.todo} /${data.isCompleted}`);
-        const updatedTodos = todos.map(td => {
+        const updatedTodos = todos.map((td) => {
           if (td.id === id) {
             return {
               ...td,
-              editMode: false
-            }
+              editMode: false,
+            };
           }
           return td;
         });
@@ -160,9 +169,9 @@ const TodoPage = () => {
       },
     })
       .then((res) => {
-        const updatedTodos = todos.filter(td => td.id !== id);
+        const updatedTodos = todos.filter((td) => td.id !== id);
         setTodos(updatedTodos);
-        alert('해당 todo가 삭제되었습니다.')
+        alert('해당 todo가 삭제되었습니다.');
       })
       .catch((err) => {
         console.error(err);
@@ -170,33 +179,36 @@ const TodoPage = () => {
   };
 
   return (
-    <>
-      <h2>Todo 페이지</h2>
-
-      <input
-        onChange={handleInputTodo}
-        className="todo-input"
-        data-testid="new-todo-input"
-        placeholder="Todo입력"
-        value={addTodo}
-        type="text"
-      />
-
-      <button
-        onClick={handleCreateTodo}
-        className="btn"
-        data-testid="new-todo-add-button"
-        type="submit"
-      >
-        추가
-      </button>
+    <Layout>
+      <Stack direction={'row'} spacing={1}>
+        <FormControl id="text">
+          <Input
+            bg="white"
+            onChange={handleInputTodo}
+            data-testid="new-todo-input"
+            placeholder="Todo입력"
+            value={addTodo}
+            type="text"
+          />
+        </FormControl>
+        <Button
+          onClick={handleCreateTodo}
+          data-testid="new-todo-add-button"
+          bg={'#A9B8AF'}
+          _hover={{
+            bg: '#F1B6B6',
+          }}
+          type="submit"
+        >
+          추가
+        </Button>
+      </Stack>
       {todos.map((td) => {
         const { id, todo, isCompleted, editMode } = td;
-
         const renderContent = () => {
           if (editMode) {
             return (
-              <input
+              <Input
                 data-testid="modify-input"
                 defaultValue={todo}
                 onChange={(e) => handleEditInput(e, id)}
@@ -205,57 +217,76 @@ const TodoPage = () => {
           } else {
             return <span>{todo}</span>;
           }
-        }
+        };
 
         return (
           <li key={id}>
-            <label>
-              <input
-                type="checkbox"
-                onClick={() => handleUpdateTodo(id, todo, isCompleted, editMode)}
-                defaultChecked={isCompleted}
-              />
-              {renderContent()}
-            </label>
-            {editMode ? (
-              <>
-                <button
-                  data-testid="submit-button"
-                  onClick={() => handleSubmitEdit(id, todo, isCompleted)}
-                >
-                  제출
-                </button>
-                <button
-                  data-testid="cancel-button"
-                  onClick={() => handleCancel(id)}
-                >
-                  취소
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => handleModify(id)}
-                  className="btn"
-                  data-testid="modify-button"
-                  type="submit"
-                >
-                  수정
-                </button>
-                <button
-                  onClick={() => handleDelete(id)}
-                  className="btn"
-                  data-testid="delete-button"
-                  type="submit"
-                >
-                  삭제
-                </button>
-              </>
-            )}
+            <Stack direction={'row'} spacing={1}>
+              <label>
+                <input
+                  type="checkbox"
+                  onClick={() =>
+                    handleUpdateTodo(id, todo, isCompleted, editMode)
+                  }
+                  defaultChecked={isCompleted}
+                />
+                {renderContent()}
+              </label>
+
+              {editMode ? (
+                <Stack spacing={1}>
+                  <Button
+                    data-testid="submit-button"
+                    onClick={() => handleSubmitEdit(id, todo, isCompleted)}
+                    bg={'#A9B8AF'}
+                    _hover={{
+                      bg: '#F1B6B6',
+                    }}
+                    type="submit"
+                  >
+                    제출
+                  </Button>
+                  <Button
+                    data-testid="cancel-button"
+                    onClick={() => handleCancel(id)}
+                    bg={'red'}
+                    _hover={{
+                      bg: '#F1B6B6',
+                    }}
+                  >
+                    취소
+                  </Button>
+                </Stack>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => handleModify(id)}
+                    data-testid="modify-button"
+                    bg={'#C7D3C7'}
+                    _hover={{
+                      bg: '#F1B6B6',
+                    }}
+                    type="submit"
+                  >
+                    수정
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(id)}
+                    data-testid="delete-button"
+                    bg={'#A9B8AF'}
+                    _hover={{
+                      bg: '#F1B6B6',
+                    }}
+                  >
+                    삭제
+                  </Button>
+                </>
+              )}
+            </Stack>
           </li>
         );
       })}
-    </>
+    </Layout>
   );
 };
 
