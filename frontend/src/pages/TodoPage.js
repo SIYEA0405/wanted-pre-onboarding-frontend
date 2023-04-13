@@ -17,7 +17,7 @@ const TodoPage = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setTodos([...data]);
+        setTodos([...data.map(td => ({...td, editMode: false}))]);
       })
       .catch((err) => {
         console.error(err);
@@ -32,16 +32,12 @@ const TodoPage = () => {
     getTodos();
   }, [token]);
 
-  useEffect(() => {
-    getTodos();
-  }, [todos]);
-
   const handleInputTodo = (e) => {
     setAddTodo(e.target.value);
   };
 
-  const handleCreateTodo = async (e) => {
-    await e.preventDefault();
+  const handleCreateTodo = (e) => {
+    e.preventDefault();
     fetch('https://www.pre-onboarding-selection-task.shop/todos', {
       method: 'POST',
       body: JSON.stringify({ todo: addTodo }),
@@ -52,14 +48,15 @@ const TodoPage = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setTodos([...todos, data]);
+        setTodos([...todos, {...data, editMode: false}]);
+        setAddTodo('');
       })
       .catch((err) => {
         console.error(err);
       });
   };
 
-  const handleUpdateTodo = (id, todo, isCompleted) => {
+  const handleUpdateTodo = (id, todo, isCompleted, editMode) => {
     fetch(`https://www.pre-onboarding-selection-task.shop/todos/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ todo: todo, isCompleted: !isCompleted }),
@@ -71,17 +68,105 @@ const TodoPage = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log(`변경후: ${id} ${data.todo} /${data.isCompleted}`);
+        const updatedTodos = todos.map(td => {
+          if (td.id === id) {
+            return {
+              ...td,
+              isCompleted: data.isCompleted,
+              todo: data.todo
+            }
+          }
+          return td;
+        });
+        setTodos(updatedTodos);
       })
       .catch((err) => {
         console.error(err);
       });
   };
 
-  const handleModify = () => {
-    console.log('수정버튼클릭');
+  const handleModify = (id) => {
+    const updatedTodos = todos.map(td => {
+      if (td.id === id) {
+        return {
+          ...td,
+          editMode: !td.editMode
+        }
+      }
+      return td;
+    });
+    setTodos(updatedTodos);
   };
-  const handleDelete = () => {
-    console.log('삭제버튼클릭');
+
+  const handleCancel = (id) => {
+    const updatedTodos = todos.map(td => {
+      if (td.id === id) {
+        return {
+          ...td,
+          editMode: false
+        }
+      }
+      return td;
+    });
+    setTodos(updatedTodos);
+  }
+
+  const handleEditInput = (e, id) => {
+    const updatedTodos = todos.map(td => {
+      if (td.id === id) {
+        return {
+          ...td,
+          todo: e.target.value
+        }
+      }
+      return td;
+    });
+    setTodos(updatedTodos);
+  };
+
+  const handleSubmitEdit = (id, todo, isCompleted) => {
+    fetch(`https://www.pre-onboarding-selection-task.shop/todos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ todo: todo, isCompleted: isCompleted }),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(`변경후: ${id} ${data.todo} /${data.isCompleted}`);
+        const updatedTodos = todos.map(td => {
+          if (td.id === id) {
+            return {
+              ...td,
+              editMode: false
+            }
+          }
+          return td;
+        });
+        setTodos(updatedTodos);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
+  const handleDelete = (id) => {
+    fetch(`https://www.pre-onboarding-selection-task.shop/todos/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        const updatedTodos = todos.filter(td => td.id !== id);
+        setTodos(updatedTodos);
+        alert('해당 todo가 삭제되었습니다.')
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   return (
@@ -93,6 +178,7 @@ const TodoPage = () => {
         className="todo-input"
         data-testid="new-todo-input"
         placeholder="Todo입력"
+        value={addTodo}
         type="text"
       />
 
@@ -105,33 +191,67 @@ const TodoPage = () => {
         추가
       </button>
       {todos.map((td) => {
-        const { id, todo, isCompleted } = td;
+        const { id, todo, isCompleted, editMode } = td;
+
+        const renderContent = () => {
+          if (editMode) {
+            return (
+              <input
+                data-testid="modify-input"
+                defaultValue={todo}
+                onChange={(e) => handleEditInput(e, id)}
+              />
+            );
+          } else {
+            return <span>{todo}</span>;
+          }
+        }
+
         return (
           <li key={id}>
             <label>
               <input
                 type="checkbox"
-                onClick={() => handleUpdateTodo(id, todo, isCompleted)}
+                onClick={() => handleUpdateTodo(id, todo, isCompleted, editMode)}
                 defaultChecked={isCompleted}
               />
-              <span>{todo}</span>
+              {renderContent()}
             </label>
-            <button
-              onClick={handleModify}
-              className="btn"
-              data-testid="modify-button"
-              type="submit"
-            >
-              수정
-            </button>
-            <button
-              onClick={handleDelete}
-              className="btn"
-              data-testid="delete-button"
-              type="submit"
-            >
-              삭제
-            </button>
+            {editMode ? (
+              <>
+                <button
+                  data-testid="submit-button"
+                  onClick={() => handleSubmitEdit(id, todo, isCompleted)}
+                >
+                  제출
+                </button>
+                <button
+                  data-testid="cancel-button"
+                  onClick={() => handleCancel(id)}
+                >
+                  취소
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleModify(id)}
+                  className="btn"
+                  data-testid="modify-button"
+                  type="submit"
+                >
+                  수정
+                </button>
+                <button
+                  onClick={() => handleDelete(id)}
+                  className="btn"
+                  data-testid="delete-button"
+                  type="submit"
+                >
+                  삭제
+                </button>
+              </>
+            )}
           </li>
         );
       })}
