@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import Layout from '../components/Layout';
+import {
+  FormControl,
+  FormLabel,
+  Button,
+  Input,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
 
 const SigninPage = () => {
   const [email, setEmail] = useState('');
@@ -56,42 +65,49 @@ const SigninPage = () => {
   };
 
   return (
-    <>
-      <h2>로그인 페이지</h2>
-      <form>
-        <label className="label">
-          Email
-          <input
+    <Layout>
+      <Stack spacing={4}>
+        <FormControl id="email">
+          <FormLabel>Email address</FormLabel>
+          <Input
             onChange={handleEmail}
             data-testid="email-input"
-            className="email-input"
-            value={email}
             type="email"
           />
-        </label>
-
-        <label className="label">
-          Password
-          <input
+        </FormControl>
+        <FormControl id="password">
+          <FormLabel>Password</FormLabel>
+          <Input
             onChange={handlePassword}
             data-testid="password-input"
-            className="password-input"
-            value={password}
             type="password"
           />
-        </label>
-
-        <button
-          onClick={handleSubmit}
-          className="btn"
-          data-testid="signin-button"
-          type="submit"
-          disabled={!isDisabled}
-        >
-          로그인
-        </button>
-      </form>
-    </>
+        </FormControl>
+        <Stack spacing={10}>
+          <Button
+            onClick={handleSubmit}
+            data-testid="signin-button"
+            bg={'#A9B8AF'}
+            _hover={{
+              bg: '#F1B6B6',
+            }}
+            type="submit"
+            disabled={!isDisabled}
+          >
+            로그인
+          </Button>
+          <Text
+            as={'ins'}
+            color={'#93949B'}
+            _hover={{
+              color: '#1A202C',
+            }}
+          >
+            <Link to="/signup">회원가입 페이지로 돌아가기</Link>
+          </Text>
+        </Stack>
+      </Stack>
+    </Layout>
   );
 };
 export default SigninPage;
